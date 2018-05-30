@@ -31,7 +31,7 @@ If the source code is built correctly, run executable file `web_conn` from a ter
 `SKTEST;172.217.23.36;200;0.00039553;0.00049263;0.0573863;0.0900923`
 
 # Note [TO DO list]
-The program can be improved if I could work with it further. Following are a brief **TO DO** list which could be considered:
+The program can be improved if I could work with it further. Here is a brief **TO DO** list which could be considered in the future:
 * Turn the program into multi-threading mode, which would boot the test performance a lot. 
 * Take web site URL from command line so that it can test network performance for other web site. 
 * Take more than one web site URL from command line so that more than one web site can be tested at the same time (take URL list from command line seperated by a dilimeter?)
