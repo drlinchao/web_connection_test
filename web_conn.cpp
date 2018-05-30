@@ -15,6 +15,9 @@
 #include <string>
 #include <unistd.h>
 
+// In future version, multi-threading can be used to boost the performance. 
+#include <pthread.h>
+
 // Make sure curl library has been installed on your system. 
 #include <curl/curl.h>
 
@@ -22,11 +25,6 @@
 #include "web_tester.h"
 
 
-// Global variable for holding statistical response records. 
-double mean_connect_time;
-double mean_lookup_time;
-double mean_start_transfer_time;
-double mean_total_time;
 
 // Paring the string and convert the string to integer value if all good. 
 //
@@ -69,35 +67,86 @@ bool ParseInt(const char* arg, int* var, const int min, const int max)
 }
 
 
-
-bool PerformTest(const char* host_name, std::string& server_ip, long& response_code, std::vector<std::string>& http_headers)
+//@brief Perform curl GET 
+//
+//@param site_name  web site name
+//@param http_headers extra HTTP headers which provided by user through command line arguments. 
+//@param repeat Test repeat number.
+//@param threads Reserved for multi-threading version. 
+//
+//@return true if the web site can be accessed and response time has been calculated. Or false if all
+//        tests failed. 
+bool PerformTest(const char* site_name, std::vector<std::string>& http_headers, int repeat, int threads)
 {
-	bool b_test_result = false;
+	double mean_connect_time;
+	double mean_lookup_time;
+	double mean_start_transfer_time;
+	double mean_total_time;
+	int i;
+	int passed_tests;
 	WebTester tester;
 	std::vector<std::string>::iterator header;	
 
-	tester.SetHost(host_name);
+	tester.SetHost(site_name);
 
 	for(header = http_headers.begin(); header != http_headers.end(); ++header)
 	{
 		tester.AddHeader((*header).c_str());
 	}
-	b_test_result = tester.Test();
-	if(b_test_result == true)
+
+	mean_connect_time = 0;
+	mean_lookup_time = 0;
+	mean_start_transfer_time = 0;
+	mean_total_time = 0;
+	passed_tests = 0;
+
+	for(i=0; i<repeat; i++)
 	{
-		server_ip = tester.GetServerIP();
-		response_code = tester.GetResponseCode();
-		mean_connect_time += tester.GetConnectTime();
-		mean_lookup_time += tester.GetLookupTime();
-		mean_start_transfer_time += tester.GetTransferTime();
-		mean_total_time += tester.GetTotalTime();
+		if(tester.Test())
+		{
+			mean_connect_time += tester.GetConnectTime();
+			mean_lookup_time += tester.GetLookupTime();
+			mean_start_transfer_time += tester.GetTransferTime();
+			mean_total_time += tester.GetTotalTime();
+			++passed_tests;
+		}
 	}
 
-	return b_test_result;
+	if(passed_tests > 0)
+	{
+		mean_connect_time /= (double)passed_tests;
+		mean_lookup_time /= (double)passed_tests;
+		mean_start_transfer_time /= (double)passed_tests;
+		mean_total_time /= (double)passed_tests;
+		
+		std::cout << "Passed test: " << passed_tests << " (total: " << repeat << ")" << std::endl;
+		std::cout << "SKTEST;" << tester.GetServerIP() << ";" << tester.GetResponseCode() << ";" << mean_lookup_time << ";" << mean_connect_time << ";" << mean_start_transfer_time << ";" << mean_total_time << std::endl;
+		return true;
+	}
+	else
+	{
+		std::cout << "Test failed." << std::endl;
+		std::cout << "SKTEST;" << tester.GetServerIP() << ";" << tester.GetResponseCode() << ";" << "-" << ";" << "-"<< ";" << "-" << ";" << "-" << std::endl;
+		return false;
+	}
+
 }
 
 
-
+//@brief Main function for testing web site responding time. 
+//
+// Valid arguments are:
+// -H "header_name:header_value"
+// -n <repeat> 
+// -T <threads>
+//
+//@note More than one HTTP header argument can be used if required. But repeat number and thread number 
+//      can be set only once. The repeat number equals to one if no -n argument. Thread number
+//      equals to one if no -T argument. 
+//
+//
+//@note multi-threading mode does not included in this version. Therefore, the -T <threads> argument
+//      takes no effect. 
 int main(int argc, char** argv)
 {
 	bool test_repeat_set = false;				///< Mark whether test repeat number has been set or not. 
@@ -106,12 +155,7 @@ int main(int argc, char** argv)
 	int test_threads = 1;						///< Test thread number (must be >=1)
 	std::vector<std::string> http_headers;		///< Hold HTTP headers if provided by user. 
 	std::vector<std::string>::iterator header;	///< iterator for HTTP headers
-
-	long response_code;
-	std::string server_ip;
-
 	int i;
-	int passed_test = 0;
 
 	// Set repeat count to 1 if no command line argument is provided. 
 	if(argc == 1)
@@ -211,34 +255,8 @@ int main(int argc, char** argv)
 		}
 	}
 
-	std::cout << "Repeat: " << test_repeat << std::endl;
-	std::cout << "Theads: " << test_threads << std::endl;
-	for(header = http_headers.begin(); header != http_headers.end(); ++header)
-	{
-		std::cout << *header << std::endl;
-	}
 
-	mean_connect_time = 0;
-	mean_lookup_time = 0;
-	mean_start_transfer_time = 0;
-
-	mean_total_time = 0;
-
-	for(i=0; i<test_repeat; i++)
-	{
-		if( PerformTest("http://www.google.com", server_ip, response_code, http_headers) == true)
-		{
-			passed_test++;
-			std::cout << "Test finished successfully." << std::endl;
-		}
-	}
-	mean_connect_time /= (double)passed_test;
-	mean_lookup_time /= (double)passed_test;
-	mean_start_transfer_time /= (double)passed_test;
-	mean_total_time /= (double)passed_test;
-
-
-	std::cout << "SKTEST;" << server_ip << ";" << response_code << ";" << mean_lookup_time << ";" << mean_connect_time << ";" << mean_start_transfer_time << ";" << mean_total_time << std::endl;
+	PerformTest("http://www.google.com", http_headers, test_repeat, test_threads);
 
 	return 0;
 }
