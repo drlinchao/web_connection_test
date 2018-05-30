@@ -22,6 +22,12 @@
 #include "web_tester.h"
 
 
+// Global variable for holding statistical response records. 
+double mean_connect_time;
+double mean_lookup_time;
+double mean_start_transfer_time;
+double mean_total_time;
+
 // Paring the string and convert the string to integer value if all good. 
 //
 //@param arg A string which holds a integer
@@ -35,7 +41,7 @@ bool ParseInt(const char* arg, int* var, const int min, const int max)
 	long lnum;
 	char *end;
 	bool b_result = false;
-	
+
 	// Do not use atoi since it is difficult to check whether the string
 	// contains leagle value or not. 
 	lnum = strtol(arg, &end, 10);
@@ -62,15 +68,50 @@ bool ParseInt(const char* arg, int* var, const int min, const int max)
 	return b_result;
 }
 
+
+
+bool PerformTest(const char* host_name, std::string& server_ip, long& response_code, std::vector<std::string>& http_headers)
+{
+	bool b_test_result = false;
+	WebTester tester;
+	std::vector<std::string>::iterator header;	
+
+	tester.SetHost(host_name);
+
+	for(header = http_headers.begin(); header != http_headers.end(); ++header)
+	{
+		tester.AddHeader((*header).c_str());
+	}
+	b_test_result = tester.Test();
+	if(b_test_result == true)
+	{
+		server_ip = tester.GetServerIP();
+		response_code = tester.GetResponseCode();
+		mean_connect_time += tester.GetConnectTime();
+		mean_lookup_time += tester.GetLookupTime();
+		mean_start_transfer_time += tester.GetTransferTime();
+		mean_total_time += tester.GetTotalTime();
+	}
+
+	return b_test_result;
+}
+
+
+
 int main(int argc, char** argv)
 {
-	bool test_repeat_set = false;	///< Mark whether test repeat number has been set or not. 
-	bool test_threads_set = false;	///< Mark whether test thread count has been set or not. 
-	int test_repeat = 1;			///< Test repeat number (must be >=1) 
-	int test_threads = 1;			///< Test thread number (must be >=1)
-	std::vector<std::string> http_headers;
-	std::vector<std::string>::iterator header;
+	bool test_repeat_set = false;				///< Mark whether test repeat number has been set or not. 
+	bool test_threads_set = false;				///< Mark whether test thread count has been set or not. 
+	int test_repeat = 1;						///< Test repeat number (must be >=1) 
+	int test_threads = 1;						///< Test thread number (must be >=1)
+	std::vector<std::string> http_headers;		///< Hold HTTP headers if provided by user. 
+	std::vector<std::string>::iterator header;	///< iterator for HTTP headers
+
+	long response_code;
+	std::string server_ip;
+
 	int i;
+	int passed_test = 0;
 
 	// Set repeat count to 1 if no command line argument is provided. 
 	if(argc == 1)
@@ -176,6 +217,28 @@ int main(int argc, char** argv)
 	{
 		std::cout << *header << std::endl;
 	}
+
+	mean_connect_time = 0;
+	mean_lookup_time = 0;
+	mean_start_transfer_time = 0;
+
+	mean_total_time = 0;
+
+	for(i=0; i<test_repeat; i++)
+	{
+		if( PerformTest("http://www.google.com", server_ip, response_code, http_headers) == true)
+		{
+			passed_test++;
+			std::cout << "Test finished successfully." << std::endl;
+		}
+	}
+	mean_connect_time /= (double)passed_test;
+	mean_lookup_time /= (double)passed_test;
+	mean_start_transfer_time /= (double)passed_test;
+	mean_total_time /= (double)passed_test;
+
+
+	std::cout << "SKTEST;" << server_ip << ";" << response_code << ";" << mean_lookup_time << ";" << mean_connect_time << ";" << mean_start_transfer_time << ";" << mean_total_time << std::endl;
 
 	return 0;
 }
