@@ -14,7 +14,7 @@ Default development environment: GNU make, GNU GCC, libcurl-7.60.0
 * The program output takes this format: 
   `SKTEST;<IP address of HTTP server>;<HTTP response code>;<median of CURLINFO_NAMELOOKUP_TIME>;<median of CURLINFO_CONNECT_TIME>;<median of CURLINFO_STARTTRANSFER_TIME>;<median of CURLINFO_TOTAL_TIME>`
   
-# Build the source
+# Build the source code
 * Make sure curl library (can be downloaded from https://curl.haxx.se/libcurl/) has been installed before build the source code. 
 * Make sure GNU make and GCC have been installed before build the source code. 
 * clone souce code from GitHub
@@ -28,6 +28,7 @@ Default development environment: GNU make, GNU GCC, libcurl-7.60.0
 Doxygen format is used to write comments in the source code files. If doxygen is installed, html document can be generated for this project. To generate HTML documents, enter sub-folder *doc* and type command `doxygen Doxygen`.
 * To install doxygen on Debian Linux, type `sudo apt-get install doxygen` 
 * Doxygen can be found at: http://www.doxygen.org 
+* If LaTeX or other format is required, enable them in the configure file *Doxygen*
 
 # Execute the program
 If the source code is built correctly, run executable file `web_conn` from a terminal window. 
