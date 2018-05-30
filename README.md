@@ -18,9 +18,12 @@ Default development environment: GNU make, GNU GCC, libcurl-7.60.0
 * Make sure curl library (can be downloaded from https://curl.haxx.se/libcurl/) has been installed before build the source code. 
 * Make sure GNU make and GCC have been installed before build the source code. 
 * clone souce code from GitHub
-* Enter source code folder and type `make` to build the source code
+* Enter source code folder
+  * `make` to build the source code
+  * `make help` show help message
+  * `make clean` to clean temporary files. 
 
 # Execute the program
-If the source code is built correctly, run it from a terminal window. 
+If the source code is built correctly, run executable file `web_conn` from a terminal window. 
 
 
