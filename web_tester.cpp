@@ -1,0 +1,19 @@
+///////////////////////////////////////////////////////////////////////////////
+//@package         web_connect_test
+//@author          Dr. Lin, Chao
+//@since           30th May 2018
+//@version         0.0.1
+///////////////////////////////////////////////////////////////////////////////
+
+#include "web_tester.h"
+
+
+// Constructor and destructor
+WebTester::WebTester()
+{
+}
+
+
+WebTester::~WebTester()
+{
+}
