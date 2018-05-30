@@ -24,6 +24,11 @@ Default development environment: GNU make, GNU GCC, libcurl-7.60.0
   * `make clean` to clean temporary files.
 * This program has been tested on ARM board (OrangePi Win-Plus http://www.orangepi.org/OrangePiWinPlus/) with gcc 8.1.0 and curl library 7.60.0
 
+# Build manual
+Doxygen format is used to write comments in the source code files. If doxygen is installed, html document can be generated for this project. To generate HTML documents, enter sub-folder *doc* and type command `doxygen Doxygen`.
+* To install doxygen on Debian Linux, type `sudo apt-get install doxygen` 
+* Doxygen can be found at: http://www.doxygen.org 
+
 # Execute the program
 If the source code is built correctly, run executable file `web_conn` from a terminal window. 
 `web_conn -n 100` gives a result:
