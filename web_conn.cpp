@@ -21,11 +21,51 @@
 #include "web_tester.h"
 
 
+// Paring the string and convert the string to integer value if all good. 
+//
+//@param arg A string which holds a integer
+//@param var an integer pointer points to the variable which should hold the value
+//@param min The minimum suitable value
+//@param max The maximum suitable value
+//
+//@return true if everythong goes smoothly or false if something goes wrong. 
+bool ParseInt(const char* arg, int* var, const int min, const int max)
+{
+	long lnum;
+	char *end;
+	bool b_result = false;
+	
+	// Do not use atoi since it is difficult to check whether the string
+	// contains leagle value or not. 
+	lnum = strtol(arg, &end, 10);
+	*var = 0;
+	if (arg == end)
+	{
+		std::cout << "Error: wrong value for test repeat number." << std::endl;
+	}
+	else if( (lnum == LONG_MAX) || (lnum == LONG_MIN) || errno == ERANGE)
+	{
+		std::cout << "Error: test repeat number is out of range." << std::endl;
+	}
+	else if( (lnum > max) || (lnum < min))
+	{
+		std::cout << "Error: test repeat number must be in the range of [" << min << "," << max << "]" << std::endl;
+	}
+	else
+	{
+		*var = (int)lnum;
+		b_result = true;
+	}
+
+
+	return b_result;
+}
+
 int main(int argc, char** argv)
 {
 	bool test_repeat_set = false;	///< Mark whether test repeat number has been set or not. 
 	bool test_threads_set = false;	///< Mark whether test thread count has been set or not. 
-	int test_repeat = 0;			///< Test repeat number (must be >=1) 
+	int test_repeat = 1;			///< Test repeat number (must be >=1) 
 	int test_threads = 1;			///< Test thread number (must be >=1)
 	int i;
 
@@ -43,40 +83,25 @@ int main(int argc, char** argv)
 	{
 		for(i=1; i<argc; i++)
 		{
+			// Parse repeat number 
 			if(!strncmp(argv[i], "-n", MAX_STR_LENGTH))
 			{
+				i++;
 				if( test_repeat_set == true)
 				{
 					std::cout << "Error: Can not set test repeat number more than once!" << std::endl;
 					return ERROR_WRONG_ARGS;
 				}
-
-				i++;
 				if(i < argc)
 				{
-					long lnum;
-					char *end;
-					lnum = strtol(argv[i], &end, 10);
-
-					if (argv[i] == end)
+					if( ParseInt(argv[i], &test_repeat, 1, MAX_REPEAT))
 					{
-						std::cout << "Error: wrong value for test repeat number." << std::endl;
-						return ERROR_OUT_OF_RANGE;
-					}
-					else if( (lnum == LONG_MAX) || (lnum == LONG_MIN) || errno == ERANGE)
-					{
-						std::cout << "Error: test repeat number is out of range." << std::endl;
-						return ERROR_OUT_OF_RANGE;
-					}
-					else if( (lnum > MAX_REPEAT) || (lnum < 1))
-					{
-						std::cout << "Error: test repeat number must be in the range of [" << 1 << "," << MAX_REPEAT << "]" << std::endl;
-						return ERROR_OUT_OF_RANGE;
+						test_repeat_set = true;
 					}
 					else
 					{
-						test_repeat = (int)lnum;
-						test_repeat_set = true;
+						std::cout << "Error: Read test repeat number failed!" << std::endl;
+						return ERROR_WRONG_ARGS;
 					}
 				}
 				else
@@ -85,11 +110,36 @@ int main(int argc, char** argv)
 					return ERROR_WRONG_ARGS;
 				}
 			}
+			// Parse extra HTTP header argument. 
 			else if(!strncmp(argv[i], "-H", MAX_STR_LENGTH))
 			{
 			}
+			// Parse number of threads argument
 			else if(!strncmp(argv[i], "-T", MAX_STR_LENGTH))
 			{
+				i++;
+				if( test_threads_set == true)
+				{
+					std::cout << "Error: Can not set number of threads more than once!" << std::endl;
+					return ERROR_WRONG_ARGS;
+				}
+				if(i < argc)
+				{
+					if(ParseInt(argv[i], &test_threads, 1, MAX_THREADS))
+					{
+						test_threads_set = true;
+					}
+					else
+					{
+						std::cout << "Error: Read number of threads failed!" << std::endl;
+						return ERROR_WRONG_ARGS;
+					}
+				}
+				else
+				{
+					std::cout << "Error: expecting number of threads (integer)" << std::endl;
+					return ERROR_WRONG_ARGS;
+				}
 			}
 			else
 			{
@@ -98,6 +148,9 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+
+	std::cout << "Repeat: " << test_repeat << std::endl;
+	std::cout << "Theads: " << test_threads << std::endl;
 
 
 	return 0;
