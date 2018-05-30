@@ -9,6 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <vector>
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -67,6 +68,8 @@ int main(int argc, char** argv)
 	bool test_threads_set = false;	///< Mark whether test thread count has been set or not. 
 	int test_repeat = 1;			///< Test repeat number (must be >=1) 
 	int test_threads = 1;			///< Test thread number (must be >=1)
+	std::vector<std::string> http_headers;
+	std::vector<std::string>::iterator header;
 	int i;
 
 	// Set repeat count to 1 if no command line argument is provided. 
@@ -113,6 +116,24 @@ int main(int argc, char** argv)
 			// Parse extra HTTP header argument. 
 			else if(!strncmp(argv[i], "-H", MAX_STR_LENGTH))
 			{
+				i++;
+				if(i < argc)
+				{
+					if(strnlen(argv[i], MAX_STR_LENGTH) > 0)
+					{
+						http_headers.push_back(argv[i]);
+					}
+					else
+					{
+						std::cout << "Error: HTTP header can not be empty." << std::endl;
+						return ERROR_WRONG_ARGS;
+					}
+				}
+				else
+				{
+					std::cout << "Error: expecting a HTTP header." << std::endl;
+					return ERROR_WRONG_ARGS;
+				}
 			}
 			// Parse number of threads argument
 			else if(!strncmp(argv[i], "-T", MAX_STR_LENGTH))
@@ -151,7 +172,10 @@ int main(int argc, char** argv)
 
 	std::cout << "Repeat: " << test_repeat << std::endl;
 	std::cout << "Theads: " << test_threads << std::endl;
-
+	for(header = http_headers.begin(); header != http_headers.end(); ++header)
+	{
+		std::cout << *header << std::endl;
+	}
 
 	return 0;
 }
