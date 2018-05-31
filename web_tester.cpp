@@ -23,7 +23,7 @@ size_t DummyWrite(char *ptr, size_t size, size_t nmemb, void *userdata)
 ///////////////////////////////////////////////////////////////////////////////
 WebTester::WebTester()
 {
-	headers = nullptr;
+	headers = NULL;
 	Reset();
 	ResetHeader();
 	curl = curl_easy_init();
@@ -123,11 +123,11 @@ bool WebTester::Test(void)
 void WebTester::ResetHeader(void)
 {
 	// Free curl resoruces in destructor
-	if(headers != nullptr)
+	if(headers != NULL)
 	{
 		curl_slist_free_all(headers);
 	}
-	headers = nullptr;
+	headers = NULL;
 }
 
 void WebTester::AddHeader(const char* new_header)

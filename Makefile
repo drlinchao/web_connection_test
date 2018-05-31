@@ -14,8 +14,8 @@ SRCS=$(wildcard *.cpp)
 DEPS:=$(wildcard *.h)
 OBJS:=$(patsubst %.cpp, %.o, $(wildcard *.cpp))
 
-CFLAGS=-c -O2  -Wall -I/usr/local/include
-LINKS=-O2 -L/usr/local/lib -lcurl
+CFLAGS=-c -O2  -Wall -I/usr/local/include 
+LINKS=-O2 -L/usr/local/lib -lcurl 
 
 all:	$(EXEC)
 
